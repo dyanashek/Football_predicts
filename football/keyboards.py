@@ -110,7 +110,7 @@ async def matches_keyboard(page, round_id,):
         matches = matches[(page - 1) * config.PER_PAGE:page * config.PER_PAGE]
         for match in matches:
             symbol = '⏳'
-            if match.date <= timezone.now():
+            if timezone.localtime(match.date) <= timezone.now():
                 symbol = '✅'
 
             if match.score1 and match.score2:
@@ -186,10 +186,7 @@ async def predicts_keyboard(page, predicts):
                 symbol = '✅'
 
             match = await sync_to_async(lambda: predict.match)()
-            if match.score1 and match.score2:
-                button_text = f'{symbol} {match.team1} {match.score1}:{match.score2} {match.team2}'
-            else:
-                button_text = f'{symbol} {match.team1} - {match.team2}'
+            button_text = f'{symbol} {match.team1} {predict.score1}:{predict.score2} {match.team2}'
 
             keyboard.row(types.InlineKeyboardButton(text=button_text, callback_data=f'match_{match.pk}_p'))
     

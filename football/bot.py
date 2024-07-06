@@ -20,7 +20,6 @@ from core.models import TGUser, Round, Tournament, Match, Predict, Rating
 
 import config
 import keyboards
-import functions
 import utils
 import text
 
@@ -238,7 +237,7 @@ async def callback_query(call: types.CallbackQuery):
                 
             await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.match_keyboard(match.date, predict_score1, predict_score2, match.team1, match.team2, match.pk, label),
+                                            reply_markup=await keyboards.match_keyboard(timezone.localtime(match.date), predict_score1, predict_score2, match.team1, match.team2, match.pk, label),
                                             )
 
         elif query == 'plus':
@@ -257,7 +256,7 @@ async def callback_query(call: types.CallbackQuery):
 
             await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.match_keyboard(match.date, score1, score2, match.team1, match.team2, match_id, label),
+                                            reply_markup=await keyboards.match_keyboard(timezone.localtime(match.date), score1, score2, match.team1, match.team2, match_id, label),
                                             )
 
         elif query == 'minus':
@@ -273,7 +272,7 @@ async def callback_query(call: types.CallbackQuery):
                 score2 -= 1
 
             match = await sync_to_async(Match.objects.get)(id=match_id)
-            match_date = match.date
+            match_date = timezone.localtime(match.date)
             team1 = match.team1
             team2 = match.team2
 
@@ -301,7 +300,7 @@ async def callback_query(call: types.CallbackQuery):
             
             await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.match_keyboard(match.date, score1, score2, match.team1, match.team2, match.pk),
+                                            reply_markup=await keyboards.match_keyboard(timezone.localtime(match.date), score1, score2, match.team1, match.team2, match.pk),
                                             )
 
         elif query == 'predicts':

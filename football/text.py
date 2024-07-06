@@ -21,7 +21,7 @@ async def match_description(match, predict):
     round = await sync_to_async(lambda: match.round.title)()
     tournament = await sync_to_async(lambda: match.round.tournament.title)()
 
-    match_date = match.date.strftime('%d.%m.%Y %H:%M')
+    match_date = timezone.localtime(match.date).strftime('%d.%m.%Y %H:%M')
     reply_text = f'*{match_date}\n\n{tournament}\n{round}:*\n'
     if match.score1 is not None and match.score2 is not None:
         reply_text += f'*{match.team1}* {match.score1}:{match.score2} *{match.team2}*'
@@ -29,7 +29,7 @@ async def match_description(match, predict):
         reply_text += f'{match.team1} - {match.team2}'
 
     if predict:
-        if match.date <= timezone.now():
+        if timezone.localtime(match.date) <= timezone.now():
             predict_title = '\n\nВаш прогноз'
         else:
             predict_title = '\n\nТекущий прогноз'
@@ -40,7 +40,7 @@ async def match_description(match, predict):
         
         reply_text += predict_block
     
-    if match.date >= timezone.now():
+    if timezone.localtime(match.date) >= timezone.now():
         if predict:
             reply_text += '\n\n*Изменить прогноз:*'
         else:
@@ -52,10 +52,13 @@ async def match_description(match, predict):
 async def leaderboard(title, leaderboard, user_place, user):
     reply_text = f'*{title}:*\n'
     for num, leader in enumerate(leaderboard[:10]):
+        total_points = leader.total_points
+        if total_points is None:
+            total_points = 0
         if user_place and num + 1 == user_place:
-            reply_text += f'\n*{num + 1}. {leader.name}: {leader.total_points} б.*'
+            reply_text += f'\n*{num + 1}. {leader.name}: {total_points} б.*'
         else:
-            reply_text += f'\n*{num + 1}.* {leader.name}: *{leader.total_points} б.*'
+            reply_text += f'\n*{num + 1}.* {leader.name}: *{total_points} б.*'
         
         if user.user_id == config.MANAGER_ID:
             reply_text += leader.user_id
@@ -63,6 +66,8 @@ async def leaderboard(title, leaderboard, user_place, user):
     if user_place and user_place > 10:
         user_name = leaderboard[user_place - 1].name
         total_points = leaderboard[user_place - 1].total_points
+        if total_points is None:
+            total_points = 0
         reply_text += f'\n\n...\n*{user_place}.* {user_name}: *{total_points} б.*\n...'
     elif not user_place:
         reply_text += f'\n\n...\n*Вы еще не приняли участия в данном рейтинге.'

@@ -26,7 +26,7 @@ class RoundInline(nested_admin.NestedTabularInline):
 @admin.register(TGUser)
 class TGUserAdmin(VersionAdmin):
     list_display = ('user_id', 'created_at', 'username', 'name')
-    fields = ('user_id', 'created_at', 'username', 'name')
+    fields = ('user_id', 'username', 'name')
     search_fields = ('name', 'username', 'user_id',)
     readonly_fields = ('user_id',)
     inlines = (PredictInline,)

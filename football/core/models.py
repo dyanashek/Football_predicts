@@ -40,7 +40,7 @@ class Tournament(models.Model):
 
 class Round(models.Model):
     tournament = models.ForeignKey(Tournament, related_name='rounds', on_delete=models.CASCADE)
-    title = models.CharField(verbose_name='Название тура', max_length=200, unique=True)
+    title = models.CharField(verbose_name='Название тура', max_length=200)
     finished = models.BooleanField(verbose_name='Завершен', default=False)
 
     class Meta:

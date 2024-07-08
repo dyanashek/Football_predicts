@@ -21,8 +21,9 @@ async def main_keyboard():
     keyboard = InlineKeyboardBuilder()
 
     keyboard.row(types.InlineKeyboardButton(text='Рейтинг игроков', callback_data=f'ratings_1'))
-    keyboard.row(types.InlineKeyboardButton(text='Чемпионаты', callback_data=f'tournaments_1'))
+    keyboard.row(types.InlineKeyboardButton(text='Сделать прогноз', callback_data=f'tournaments_1'))
     keyboard.row(types.InlineKeyboardButton(text='Мои прогнозы', callback_data=f'predicts_1'))
+    keyboard.row(types.InlineKeyboardButton(text='Правила', callback_data=f'rules'))
 
     return keyboard.as_markup()
 
@@ -241,5 +242,12 @@ async def ratings_keyboard(page, user):
 async def back_ratings_keyboard():
     keyboard = InlineKeyboardBuilder()
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_ratings'))
+
+    return keyboard.as_markup()
+
+
+async def back_main_keyboard():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_main'))
 
     return keyboard.as_markup()

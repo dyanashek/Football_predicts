@@ -354,7 +354,19 @@ async def callback_query(call: types.CallbackQuery):
                                             message_id=message_id,
                                             reply_markup=await keyboards.back_ratings_keyboard(),
                                             )
+
+        elif query == 'rules':
+            await bot.edit_message_text(chat_id=chat_id,
+                                    message_id=message_id,
+                                    text=text.rules,
+                                    parse_mode='MarkdownV2',
+                                    )
             
+            await bot.edit_message_reply_markup(chat_id=chat_id,
+                                        message_id=message_id,
+                                        reply_markup=await keyboards.back_main_keyboard(),
+                                        )
+
         elif query == 'back':
             destination = call_data[1]
 

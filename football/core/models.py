@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -153,8 +153,9 @@ class Rating(models.Model):
     
     def get_leaderboard(self):
         return TGUser.objects.filter(predicts__match__round__in=self.rounds.all()) \
-            .annotate(total_points=Sum('predicts__points')) \
-            .order_by('-total_points')
+            .annotate(total_points=Sum('predicts__points'),
+                      non_zero_predicts_count=Count('predicts__points', filter=Q(predicts__points__gt=0))) \
+            .order_by('-total_points', 'non_zero_predicts_count')
     
 
 @receiver(post_save, sender=Match)

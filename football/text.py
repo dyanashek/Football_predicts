@@ -51,7 +51,7 @@ async def match_description(match, predict):
 
 async def leaderboard(title, leaderboard, user_place, user):
     reply_text = f'*{title}:*\n'
-    for num, leader in enumerate(leaderboard[:10]):
+    for num, leader in enumerate(leaderboard[:16]):
         total_points = leader.total_points
         if total_points is None:
             total_points = 0
@@ -66,7 +66,7 @@ async def leaderboard(title, leaderboard, user_place, user):
             else:
                 reply_text += f' {leader.user_id}'
     
-    if user_place and user_place > 10:
+    if user_place and user_place > 15:
         user_name = leaderboard[user_place - 1].name
         total_points = leaderboard[user_place - 1].total_points
         if total_points is None:
@@ -76,6 +76,7 @@ async def leaderboard(title, leaderboard, user_place, user):
         reply_text += f'\n\n...\n*Вы еще не приняли участия в данном рейтинге.'
 
     return reply_text
+
 
 rules = f'''
     1\.  Конкурс прогнозов – это игра, в которой фанаты футбола могут попробовать свои силы в предсказывании результатов матчей ⚽️\

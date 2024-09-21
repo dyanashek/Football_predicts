@@ -348,7 +348,7 @@ async def callback_query(call: types.CallbackQuery):
                 
             await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.predicts_keyboard(page, predicts, tournament.id),
+                                            reply_markup=await keyboards.predicts_keyboard(page, predicts, round_id),
                                             )
 
         elif query == 'ratings':
@@ -506,7 +506,7 @@ async def callback_query(call: types.CallbackQuery):
             
                 await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.predicts_keyboard(1, predicts, tournament_id),
+                                            reply_markup=await keyboards.predicts_keyboard(1, predicts, round_id),
                                             )
 
             elif destination == 'ratings':

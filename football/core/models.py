@@ -127,7 +127,6 @@ class Predict(models.Model):
         self.save()
 
 
-
 class Rating(models.Model):
     title = models.CharField(verbose_name='Название рейтинга', max_length=200, unique=True)
     rounds = models.ManyToManyField(Round, verbose_name='Туры в рейтинге')

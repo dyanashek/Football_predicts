@@ -114,7 +114,7 @@ async def matches_keyboard(page, round_id,):
             if timezone.localtime(match.date) <= timezone.now():
                 symbol = '✅'
 
-            if match.score1 and match.score2:
+            if isinstance(match.score1, int) and isinstance(match.score2, int):
                 button_text = f'{symbol} {match.team1} {match.score1}:{match.score2} {match.team2}'
             else:
                 button_text = f'{symbol} {match.team1} - {match.team2}'
@@ -169,18 +169,18 @@ async def match_keyboard(match_date, score1, score2, team1, team2, match_id, lab
     if label == 'm':
         keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_matches_{match_id}'))
     else:
-        keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_predicts'))
+        keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_predicts_{match_id}'))
 
     return keyboard.as_markup()
 
 
-async def predicts_keyboard(page, predicts):
+async def predicts_keyboard(page, predicts, tournament_id):
     keyboard = InlineKeyboardBuilder()
 
     predicts_count = await sync_to_async(len)(predicts)
     if predicts_count:
         pages_count = math.ceil(predicts_count / config.PER_PAGE)
-        predicts = predicts[(page - 1) * config.PER_PAGE:page * config.PER_PAGE]
+        predicts = predicts[(page - 1) * config.PER_PAGE_PREDICTS:page * config.PER_PAGE_PREDICTS]
         for predict in predicts:
             symbol = '⏳'
             if predict.points is not None:
@@ -196,15 +196,15 @@ async def predicts_keyboard(page, predicts):
             if page == 1:
                 nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'nothing'))
             else:
-                nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'predicts_{page - 1}'))
+                nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'tpredicts_{page - 1}'))
             nav.append(types.InlineKeyboardButton(text=f'{page}/{pages_count}', callback_data=f'nothing'))
             if page == pages_count:
                 nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'nothing'))
             else:
-                nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'predicts_{page + 1}'))
+                nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'tpredicts_{page + 1}'))
         keyboard.row(*nav)
 
-    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_main'))
+    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_roundsp_{tournament_id}'))
 
     return keyboard.as_markup()
 
@@ -251,3 +251,68 @@ async def back_main_keyboard():
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_main'))
 
     return keyboard.as_markup()
+
+
+async def tournaments_predicts_keyboard(page, user):
+    keyboard = InlineKeyboardBuilder()
+
+    tournaments = await sync_to_async(Tournament.objects.filter(Q(is_active=True) &
+                                                                Q(rounds__matches__match_predicts__user=user)).all)()
+    tournaments_count = await sync_to_async(len)(tournaments)
+    pages_count = math.ceil(tournaments_count / config.PER_PAGE)
+    tournaments = tournaments[(page - 1) * config.PER_PAGE:page * config.PER_PAGE]
+    for tournament in tournaments:
+        symbol = '⏳'
+        if tournament.finished:
+            symbol = '✅'
+        keyboard.row(types.InlineKeyboardButton(text=f'{symbol} {tournament.title}', callback_data=f'tournamentp_1_{tournament.pk}'))
+    
+    nav = []
+    if pages_count >= 2:
+        if page == 1:
+            nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'nothing'))
+        else:
+            nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'predicts_{page - 1}'))
+        nav.append(types.InlineKeyboardButton(text=f'{page}/{pages_count}', callback_data=f'nothing'))
+        if page == pages_count:
+            nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'nothing'))
+        else:
+            nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'predicts_{page + 1}'))
+    keyboard.row(*nav)
+    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_main'))
+
+    return keyboard.as_markup()
+
+
+async def rounds_predicts_keyboard(page, tournament_id, user):
+    keyboard = InlineKeyboardBuilder()
+
+    tournament = await sync_to_async(Tournament.objects.filter(id=tournament_id).first)()
+    if tournament:
+        rounds = await sync_to_async(tournament.rounds.filter(matches__match_predicts__user=user).all)()
+        rounds_count = await sync_to_async(len)(rounds)
+        pages_count = math.ceil(rounds_count / config.PER_PAGE)
+        rounds = rounds[(page - 1) * config.PER_PAGE:page * config.PER_PAGE]
+        for round in rounds:
+            symbol = '⏳'
+            if round.finished:
+                symbol = '✅'
+            keyboard.row(types.InlineKeyboardButton(text=f'{symbol} {round.title}', callback_data=f'roundp_1_{round.pk}'))
+    
+        nav = []
+        if pages_count >= 2:
+            if page == 1:
+                nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'nothing'))
+            else:
+                nav.append(types.InlineKeyboardButton(text=f'<<', callback_data=f'tournamentp_{page - 1}_{tournament_id}'))
+            nav.append(types.InlineKeyboardButton(text=f'{page}/{pages_count}', callback_data=f'nothing'))
+            if page == pages_count:
+                nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'nothing'))
+            else:
+                nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'tournamentp_{page + 1}_{tournament_id}'))
+        keyboard.row(*nav)
+
+    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_tournamentsp'))
+
+    return keyboard.as_markup()
+    

@@ -306,7 +306,39 @@ async def callback_query(call: types.CallbackQuery):
         elif query == 'predicts':
             page = int(call_data[1])
 
-            predicts = await sync_to_async(user.predicts.all)()
+            await bot.edit_message_text(chat_id=chat_id,
+                                    message_id=message_id,
+                                    text=text.tournaments_text,
+                                    parse_mode='Markdown',
+                                    )
+            
+            await bot.edit_message_reply_markup(chat_id=chat_id,
+                                            message_id=message_id,
+                                            reply_markup=await keyboards.tournaments_predicts_keyboard(page, user),
+                                            )
+
+        elif query == 'tournamentp':
+            page = int(call_data[1])
+            tournament_id = int(call_data[2])
+            tournament = await sync_to_async(Tournament.objects.get)(id=tournament_id)
+            await bot.edit_message_text(chat_id=chat_id,
+                                    message_id=message_id,
+                                    text=f'*🏟 {tournament.title}:*',
+                                    parse_mode='Markdown',
+                                    )
+            
+            await bot.edit_message_reply_markup(chat_id=chat_id,
+                                            message_id=message_id,
+                                            reply_markup=await keyboards.rounds_predicts_keyboard(page, tournament_id, user),
+                                            )
+
+        elif query == 'roundp':
+            page = int(call_data[1])
+            round_id = int(call_data[2])
+            round = await sync_to_async(Round.objects.filter(id=round_id).first)()
+            tournament = await sync_to_async(lambda: round.tournament)()
+
+            predicts = await sync_to_async(user.predicts.filter(match__round=round).all)()
 
             await bot.edit_message_text(chat_id=chat_id,
                                         message_id=message_id,
@@ -316,7 +348,7 @@ async def callback_query(call: types.CallbackQuery):
                 
             await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.predicts_keyboard(page, predicts),
+                                            reply_markup=await keyboards.predicts_keyboard(page, predicts, tournament.id),
                                             )
 
         elif query == 'ratings':
@@ -394,6 +426,18 @@ async def callback_query(call: types.CallbackQuery):
                                                 reply_markup=await keyboards.tournaments_keyboard(1),
                                                 )
             
+            elif destination == 'tournamentsp':
+                await bot.edit_message_text(chat_id=chat_id,
+                                    message_id=message_id,
+                                    text=text.tournaments_text,
+                                    parse_mode='Markdown',
+                                    )
+            
+                await bot.edit_message_reply_markup(chat_id=chat_id,
+                                                message_id=message_id,
+                                                reply_markup=await keyboards.tournaments_predicts_keyboard(1, user),
+                                                )
+            
             elif destination == 'rounds':
                 round_id = int(call_data[2])
                 round = await sync_to_async(Round.objects.get)(id=round_id)
@@ -408,6 +452,22 @@ async def callback_query(call: types.CallbackQuery):
                 await bot.edit_message_reply_markup(chat_id=chat_id,
                                                 message_id=message_id,
                                                 reply_markup=await keyboards.rounds_keyboard(1, tournament_id),
+                                                )
+
+            elif destination == 'roundsp':
+                round_id = int(call_data[2])
+                round = await sync_to_async(Round.objects.get)(id=round_id)
+                tournament_id = await sync_to_async(lambda: round.tournament.pk)()
+                tournament_title = await sync_to_async(lambda: round.tournament.title)()
+                await bot.edit_message_text(chat_id=chat_id,
+                                    message_id=message_id,
+                                    text=f'*🏟 {tournament_title}:*',
+                                    parse_mode='Markdown',
+                                    )
+            
+                await bot.edit_message_reply_markup(chat_id=chat_id,
+                                                message_id=message_id,
+                                                reply_markup=await keyboards.rounds_predicts_keyboard(1, tournament_id, user),
                                                 )
 
             elif destination == 'matches':
@@ -429,18 +489,25 @@ async def callback_query(call: types.CallbackQuery):
                                             )
 
             elif destination == 'predicts':
-                predicts = await sync_to_async(user.predicts.all)()
+                match_id = int(call_data[2])
+                match = await sync_to_async(Match.objects.get)(id=match_id)
+                round_id = await sync_to_async(lambda: match.round.pk)()
+                round_title = await sync_to_async(lambda: match.round.title)()
+                tournament_title = await sync_to_async(lambda: match.round.tournament.title)()
+                tournament_id = await sync_to_async(lambda: match.round.tournament.id)()
+
+                predicts = await sync_to_async(user.predicts.filter(match__round__id=round_id).all)()
 
                 await bot.edit_message_text(chat_id=chat_id,
-                                            message_id=message_id,
-                                            text=text.predicts_text,
-                                            parse_mode='Markdown',
-                                            )
-                    
+                                    message_id=message_id,
+                                    text=f'⚽️ *{tournament_title}\n⚽️ {round_title}:*',
+                                    parse_mode='Markdown',
+                                    )
+            
                 await bot.edit_message_reply_markup(chat_id=chat_id,
-                                                message_id=message_id,
-                                                reply_markup=await keyboards.predicts_keyboard(1, predicts),
-                                                )
+                                            message_id=message_id,
+                                            reply_markup=await keyboards.predicts_keyboard(1, predicts, tournament_id),
+                                            )
 
             elif destination == 'ratings':
                 await bot.edit_message_text(chat_id=chat_id,
@@ -453,6 +520,7 @@ async def callback_query(call: types.CallbackQuery):
                                                 message_id=message_id,
                                                 reply_markup=await keyboards.ratings_keyboard(1, user),
                                                 )
+
 
 async def main():
     await dp.start_polling(bot)

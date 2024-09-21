@@ -257,7 +257,7 @@ async def tournaments_predicts_keyboard(page, user):
     keyboard = InlineKeyboardBuilder()
 
     tournaments = await sync_to_async(Tournament.objects.filter(Q(is_active=True) &
-                                                                Q(rounds__matches__match_predicts__user=user)).all)()
+                                                                Q(rounds__matches__match_predicts__user=user)).distinct)()
     tournaments_count = await sync_to_async(len)(tournaments)
     pages_count = math.ceil(tournaments_count / config.PER_PAGE)
     tournaments = tournaments[(page - 1) * config.PER_PAGE:page * config.PER_PAGE]
@@ -289,7 +289,7 @@ async def rounds_predicts_keyboard(page, tournament_id, user):
 
     tournament = await sync_to_async(Tournament.objects.filter(id=tournament_id).first)()
     if tournament:
-        rounds = await sync_to_async(tournament.rounds.filter(matches__match_predicts__user=user).all)()
+        rounds = await sync_to_async(tournament.rounds.filter(matches__match_predicts__user=user).distinct)()
         rounds_count = await sync_to_async(len)(rounds)
         pages_count = math.ceil(rounds_count / config.PER_PAGE)
         rounds = rounds[(page - 1) * config.PER_PAGE:page * config.PER_PAGE]
@@ -315,4 +315,3 @@ async def rounds_predicts_keyboard(page, tournament_id, user):
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_tournamentsp'))
 
     return keyboard.as_markup()
-    

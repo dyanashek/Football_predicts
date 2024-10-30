@@ -174,7 +174,7 @@ async def match_keyboard(match_date, score1, score2, team1, team2, match_id, lab
     return keyboard.as_markup()
 
 
-async def predicts_keyboard(page, predicts, tournament_id):
+async def predicts_keyboard(page, predicts, round_id):
     keyboard = InlineKeyboardBuilder()
 
     predicts_count = await sync_to_async(len)(predicts)
@@ -204,7 +204,7 @@ async def predicts_keyboard(page, predicts, tournament_id):
                 nav.append(types.InlineKeyboardButton(text=f'>>', callback_data=f'tpredicts_{page + 1}'))
         keyboard.row(*nav)
 
-    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_roundsp_{tournament_id}'))
+    keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_roundsp_{round_id}'))
 
     return keyboard.as_markup()
 

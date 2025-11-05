@@ -74,7 +74,7 @@ async def leaderboard(title, leaderboard, user_place, user):
             total_points = 0
         reply_text += f'\n\n...\n*{user_place}.* {user_name}: *{total_points} б.*\n...'
     elif not user_place:
-        reply_text += f'\n\n...\n*Вы еще не приняли участия в данном рейтинге.'
+        reply_text += f'\n\n...\n*Вы еще не приняли участия в данном рейтинге.*'
 
     print(reply_text)
     return reply_text

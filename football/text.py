@@ -8,6 +8,7 @@ django.setup()
 
 from django.utils import timezone
 import config
+import utils
 
 start_text = 'Привет!\nC помощью этого бота ты сможешь соревноваться в точности своих футбольных прогнозов!'
 subscribe_needed = f'📰 Условием данного бота является подписка на [канал]({config.CHANNEL_LINK}).'
@@ -55,10 +56,11 @@ async def leaderboard(title, leaderboard, user_place, user):
         total_points = leader.total_points
         if total_points is None:
             total_points = 0
+        escape_name = await utils.escape_markdown(leader.name)
         if user_place and num + 1 == user_place:
-            reply_text += f'\n*{num + 1}. {leader.name}: {total_points} б.*'
+            reply_text += f'\n*{num + 1}. {escape_name}: {total_points} б.*'
         else:
-            reply_text += f'\n*{num + 1}.* {leader.name}: *{total_points} б.*'
+            reply_text += f'\n*{num + 1}.* {escape_name}: *{total_points} б.*'
         
         if user.user_id == config.MANAGER_ID:
             if leader.username:

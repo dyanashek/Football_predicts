@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+
 class TGUser(models.Model):
     user_id = models.CharField(verbose_name='Телеграм id', max_length=100, unique=True)
     username = models.CharField(verbose_name='Ник телеграм', max_length=100, null=True, blank=True)

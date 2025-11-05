@@ -76,6 +76,7 @@ async def leaderboard(title, leaderboard, user_place, user):
     elif not user_place:
         reply_text += f'\n\n...\n*Вы еще не приняли участия в данном рейтинге.'
 
+    print(reply_text)
     return reply_text
 
 

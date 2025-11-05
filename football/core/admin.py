@@ -11,9 +11,23 @@ from core.models import TGUser, Tournament, Round, Match, Predict, Rating, BaseS
 class PredictInline(admin.TabularInline):
     model = Predict
     extra = 0
-    fields = ('match', 'match__round', 'match__round__tournament', 'score1', 'score2', 'points', 'created_at', 'updated_at')
-    readonly_fields = ('match', 'match__round', 'match__round__tournament', 'score1', 'score2', 'points', 'created_at', 'updated_at')
+    fields = ('match', 'match_round', 'match_tournament', 'score1', 'score2', 'points', 'created_at', 'updated_at')
+    readonly_fields = ('match', 'score1', 'score2', 'points', 'created_at', 'updated_at')
 
+    def match_round(self, obj):
+        try:
+            return str(obj.match.round)
+        except: 
+            return '-'
+    match_round.short_description = 'Тур'
+
+    def match_tournament(self, obj):
+        try:
+            return str(obj.match.round.tournament)
+        except:
+            return '-'
+    match_tournament.short_description = 'Турнир'
+    
 
 class MatchInline(nested_admin.NestedTabularInline):
     model = Match

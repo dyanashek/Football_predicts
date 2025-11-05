@@ -239,7 +239,7 @@
                     <td>{{ forloop.counter }}</td>
                     <td>{{ leader.name }}</td>
                     <td>{{ leader.user_id }}</td>
-                    <td>{{ leader.total_points }}</td>
+                    <td>{% if leader.total_points %}{{ leader.total_points }}{% else %}0{% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>

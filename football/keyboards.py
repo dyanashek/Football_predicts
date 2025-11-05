@@ -242,7 +242,7 @@ async def ratings_keyboard(page, user):
 async def back_ratings_keyboard(url=None):
     keyboard = InlineKeyboardBuilder()
     if url:
-        keyboard.row(types.InlineKeyboardButton(text='Открыть в вебе', url=url))
+        keyboard.row(types.InlineKeyboardButton(text='Полная таблица', url=url))
     keyboard.row(types.InlineKeyboardButton(text='⬅️ Назад', callback_data=f'back_ratings'))
 
     return keyboard.as_markup()

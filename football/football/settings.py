@@ -144,3 +144,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
+
+try:
+    from local_settings import *  
+except ImportError:
+    pass

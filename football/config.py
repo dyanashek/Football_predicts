@@ -14,3 +14,8 @@ PER_PAGE = 10
 PER_PAGE_MATCH = 20
 PER_PAGE_PREDICTS = 15
 TIME_DELTA = 4
+
+try:
+    from local_config import *
+except ImportError:
+    pass

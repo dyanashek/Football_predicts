@@ -12,7 +12,7 @@ class PredictInline(admin.TabularInline):
     model = Predict
     extra = 0
     fields = ('match', 'match_round', 'match_tournament', 'score1', 'score2', 'points', 'created_at', 'updated_at')
-    readonly_fields = ('match', 'score1', 'score2', 'points', 'created_at', 'updated_at')
+    readonly_fields = ('match', 'match_round', 'match_tournament', 'score1', 'score2', 'points', 'created_at', 'updated_at')
 
     def match_round(self, obj):
         try:

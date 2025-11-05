@@ -1,8 +1,11 @@
-from django.contrib import admin
-from core.models import TGUser, Tournament, Round, Match, Predict, Rating
-from adminsortable2.admin import SortableAdminBase, SortableAdminMixin, SortableStackedInline, SortableTabularInline
-from reversion.admin import VersionAdmin
 import nested_admin
+from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from adminsortable2.admin import SortableAdminMixin
+from reversion.admin import VersionAdmin
+
+from core.models import TGUser, Tournament, Round, Match, Predict, Rating, BaseSettings
 
 
 class PredictInline(admin.TabularInline):
@@ -59,3 +62,34 @@ class RoundAdmin(VersionAdmin):
 class RatingAdmin(SortableAdminMixin, VersionAdmin):
     list_display = ('title', 'is_active', 'order',)
     autocomplete_fields = ('rounds',)
+    
+
+@admin.register(BaseSettings)
+class BaseSettingsAdmin(VersionAdmin):
+    list_display = ('__str__',)
+    
+    def has_add_permission(self, request):
+        if BaseSettings.objects.exists():
+            return False
+        return super().has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        settings, _ = BaseSettings.objects.get_or_create(pk=1)
+        return HttpResponseRedirect(
+            reverse('admin:core_basesettings_change', args=[settings.id])
+        )
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['title'] = "Редактирование настроек"
+        return super().change_view(request, object_id, form_url, extra_context)
+

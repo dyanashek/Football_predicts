@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Рейтинг игроков</title>
+  <style>
+    :root { scrollbar-gutter: stable; }
+    @supports not (scrollbar-gutter: stable) {
+      html { overflow-y: scroll; }
+      body { min-height: calc(100vh + 1px); }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      color: #333;
+      padding: 40px 16px;
+      margin: 0;
+    }
+
+    a { color: #0078d7; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 960px; margin: 0 auto; }
+    h2 { text-align: center; margin: 0 0 20px 0; }
+
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 16px;
+    }
+
+    /* === Правила === */
+    .rules { margin-bottom: 20px; text-align: left; }
+    .rules h3 {
+      margin: 0 0 10px 0;
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .rules p { margin: 8px 0; }
+    .rules ul {
+      margin: 4px 0 10px 0;
+      padding-left: 12px;
+      list-style-type: "• ";
+    }
+    .rules li { margin: 2px 0; line-height: 1.4; }
+    .muted { color: #667085; font-weight: 400; }
+
+    /* === Панель управления === */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .controls .select-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      white-space: nowrap;
+    }
+    select {
+      padding: 8px 12px;
+      font-size: 16px;
+      border: 1px solid #cfd4da;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    /* === Обёртка для таблиц (мобильная прокрутка) === */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* === Базовые стили таблиц === */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    thead th {
+      background: #0078d7;
+      color: #fff;
+      padding: 12px 15px;
+      text-align: center;
+      font-weight: 600;
+      user-select: none;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* === Таблица рейтинга === */
+    #scoreTable { table-layout: fixed; min-width: 520px; } /* 4 колонки не схлопываются */
+    #scoreTable colgroup col { width: 25%; }
+
+    #scoreTable tbody tr { cursor: pointer; transition: background 0.15s ease; }
+    #scoreTable tbody tr:hover { background: #f7f9fb; }
+    #scoreTable tbody tr[aria-selected="true"] { background: #eaf4ff; }
+
+    /* === Панель деталей === */
+    .details {
+      margin-top: 16px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 16px;
+      display: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .details.show { display: block; opacity: 1; transform: translateY(0); }
+    .details-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .details-title { font-weight: 700; font-size: 18px; margin: 0; }
+
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid #cfe3ff;
+      background: #f3f8ff;
+      color: #2b5fb5;
+      white-space: nowrap;
+    }
+
+    .no-matches { padding: 12px; text-align: center; color: #667085; }
+
+    /* === Таблица матчей в деталях === */
+    .details .table-wrap table {
+      box-shadow: none;
+      border-radius: 6px;
+      table-layout: auto;
+      min-width: 700px; /* чтобы колонки не ломались на телефоне */
+    }
+    .details thead th { background: #eff6ff; color: #1f2937; }
+    .details th.team1, .details td.team1 { text-align: right; }
+    .details th.team2, .details td.team2 { text-align: left; }
+
+    /* Разрешаем перенос названий команд в деталях (чтобы было меньше горизонтального скролла) */
+    .details td.team1, .details td.team2 { white-space: normal; }
+
+    /* Доступность */
+    tbody tr:focus { outline: 2px solid #8ec0ff; outline-offset: -2px; }
+
+    /* === Мобильные правки === */
+    @media (max-width: 480px) {
+      thead th, tbody td { padding: 10px 12px; font-size: 14px; }
+      .controls .select-label { font-size: 15px; }
+      .rules h3 { font-size: 18px; }
+      .rules p, .rules li { font-size: 14px; }
+      /* немного меньше минимальные ширины для узких экранов */
+      #scoreTable { min-width: 480px; }
+      .details .table-wrap table { min-width: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Рейтинг игроков</h2>
+
+    <!-- Правила -->
+    <section class="rules card" aria-labelledby="rulesTitle">
+      <h3 id="rulesTitle">Правила</h3>
+      <p>Прогноз на матч можно сделать не позднее, чем за 1 минуту до начала матча.</p>
+      <p>На каждый матч участник может сделать только один прогноз.
+        До начала матча возможно изменить свой прогноз в телеграм-боте
+        <a href="https://t.me/football_cast_bot" target="_blank">@football_cast_bot</a>.
+      </p>
+      <p>Очки начисляются следующим образом:</p>
+      <ul>
+        <li>за точно угаданный счёт – 5 очков;</li>
+        <li>за угаданный исход и разницу мячей – 3 очка;</li>
+        <li>за угаданный исход – 2 очка.</li>
+      </ul>
+      <p>Учитывается итоговый счёт основного времени матча.</p>
+      <p>При равенстве очков у двух и более участников приоритетность мест определяется:</p>
+      <ul>
+        <li>по наибольшему числу угаданных точных результатов;</li>
+        <li>по наибольшему числу угаданных исходов и разниц мячей;</li>
+        <li>по наибольшему числу угаданных исходов.</li>
+      </ul>
+      <p class="muted">Чтобы узнать свой Telegram ID, воспользуйтесь ботом
+        <a href="https://t.me/TheGetAnyID_bot" target="_blank">@TheGetAnyID_bot</a>
+      </p>
+    </section>
+
+    <!-- Управление -->
+    <div class="controls">
+      <label class="select-label" for="tournamentSelect">Выбрать турнир:</label>
+      <select id="tournamentSelect" aria-label="Выбор турнира">
+        {% for rating in ratings %}
+          <option value="{{ rating.id }}" {% if curr_rating.id == rating.id %}selected{% endif %}
+          onselect="window.location.href = `/leadersboard/?rating_id={{ rating.id }}`">{{ rating.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Таблица рейтинга -->
+    <div class="table-wrap">
+      <table id="scoreTable" aria-label="Таблица участников турнира">
+        <colgroup>
+          <col /> <col /> <col /> <col />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Место</th>
+            <th>Имя</th>
+            <th>ID Telegram</th>
+            <th>Очки</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for leader in leaderboard %}
+                <tr tabindex="0" role="button" data-player-id="{{ leader.id }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ leader.name }}</td>
+                    <td>{{ leader.user_id }}</td>
+                    <td>{{ leader.total_points }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Панель деталей -->
+    <section id="details" class="details" aria-live="polite" aria-atomic="true">
+      <div class="details-header">
+        <h3 id="detailsTitle" class="details-title"></h3>
+        <span id="detailsTotal" class="pill"></span>
+      </div>
+      <div id="detailsBody"></div>
+    </section>
+  </div>
+
+  <script>
+    const select = document.getElementById("tournamentSelect");
+    const tbody  = document.querySelector("#scoreTable tbody");
+    const details = document.getElementById("details");
+    const detailsTitle = document.getElementById("detailsTitle");
+    const detailsTotal = document.getElementById("detailsTotal");
+    const detailsBody = document.getElementById("detailsBody");
+    
+    // Переменная для отслеживания текущего выбранного игрока
+    let currentPlayerId = null;
+
+
+    function hideDetails() {
+      details.classList.remove("show");
+      detailsTitle.textContent = "";
+      detailsTotal.textContent = "";
+      detailsBody.innerHTML = "";
+      [...tbody.querySelectorAll("tr")].forEach(tr => tr.removeAttribute("aria-selected"));
+      currentPlayerId = null;
+    }
+
+    async function showPlayerDetails(tournamentKey, playerId) {
+      // Показываем индикатор загрузки
+      [...tbody.querySelectorAll("tr")].forEach(tr => {
+        tr.setAttribute("aria-selected", tr.dataset.playerId === String(playerId) ? "true" : "false");
+      });
+
+      detailsTitle.innerHTML = 'Загрузка...';
+      detailsTotal.textContent = '';
+      detailsBody.innerHTML = '<div class="no-matches">Загружаем данные...</div>';
+      details.classList.add("show");
+      
+      // Запоминаем текущего игрока
+      currentPlayerId = String(playerId);
+
+      try {
+        // Делаем запрос к API
+        const response = await fetch(`/api/player-details/${tournamentKey}/${playerId}/`);
+        
+        if (!response.ok) {
+          throw new Error('Ошибка загрузки данных');
+        }
+
+        const player = await response.json();
+
+        // Обновляем заголовок
+        detailsTitle.innerHTML = `${player.name} <span class="muted">(${player.tg})</span>`;
+        detailsTotal.textContent = `Сумма очков: ${player.points}`;
+
+        // Показываем матчи
+        if (!player.matches || player.matches.length === 0) {
+          detailsBody.innerHTML = `<div class="no-matches">Пока нет зафиксированных результатов по матчам.</div>`;
+        } else {
+          const wrap = document.createElement("div");
+          wrap.className = "table-wrap";
+
+          const table = document.createElement("table");
+          table.setAttribute("aria-label", "Результаты игрока по матчам");
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>Тур</th>
+                <th class="team1">Команда 1</th>
+                <th>Счёт</th>
+                <th class="team2">Команда 2</th>
+                <th>Прогноз</th>
+                <th>Очки</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${player.matches.map(m => `
+                <tr>
+                  <td>${m.date}</td>
+                  <td>${m.round}</td>
+                  <td class="team1">${m.team1}</td>
+                  <td>${m.score}</td>
+                  <td class="team2">${m.team2}</td>
+                  <td>${m.prediction ?? "-"}</td>
+                  <td>${m.points}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          `;
+          wrap.appendChild(table);
+          detailsBody.replaceChildren(wrap);
+        }
+
+        // Без «smooth», чтобы не падали старые WebView
+        try { details.scrollIntoView(); } catch(e) {}
+        
+      } catch (error) {
+        console.error('Ошибка при загрузке деталей игрока:', error);
+        detailsTitle.textContent = 'Ошибка';
+        detailsTotal.textContent = '';
+        detailsBody.innerHTML = `<div class="no-matches">Не удалось загрузить данные. Попробуйте позже.</div>`;
+      }
+    }
+
+    tbody.addEventListener("click", (e) => {
+      const tr = e.target.closest("tr");
+      if (!tr) return;
+      
+      const playerId = tr.dataset.playerId;
+      
+      // Если кликнули на уже выбранного игрока - скрываем детали
+      if (currentPlayerId === String(playerId)) {
+        hideDetails();
+      } else {
+        // Иначе показываем детали нового игрока
+        showPlayerDetails(select.value, playerId);
+      }
+    });
+
+    select.addEventListener("change", (e) => {
+      // Скрываем детали и перезагружаем страницу с новым рейтингом
+      hideDetails();
+      window.location.href = `/leadersboard/?rating_id=${e.target.value}`;
+    });
+  </script>
+</body>
+</html>

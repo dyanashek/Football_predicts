@@ -16,7 +16,7 @@ django.setup()
 from django.db.models import Q
 from django.utils import timezone
 
-from core.models import TGUser, Round, Tournament, Match, Predict, Rating
+from core.models import TGUser, Round, Tournament, Match, Predict, Rating, BaseSettings
 
 import config
 import keyboards
@@ -381,10 +381,10 @@ async def callback_query(call: types.CallbackQuery):
                                     text=reply_text,
                                     parse_mode='Markdown',
                                     )
-            
+            base_settings = await sync_to_async(BaseSettings.objects.first)()
             await bot.edit_message_reply_markup(chat_id=chat_id,
                                             message_id=message_id,
-                                            reply_markup=await keyboards.back_ratings_keyboard(),
+                                            reply_markup=await keyboards.back_ratings_keyboard(f'{base_settings.domain}/leadersboard/?rating_id={rating_id}'),
                                             )
 
         elif query == 'rules':

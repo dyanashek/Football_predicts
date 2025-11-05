@@ -60,12 +60,9 @@ async def leaderboard(title, leaderboard, user_place, user):
             reply_text += f'\n*{num + 1}. {leader.name}: {total_points} б.*'
         else:
             reply_text += f'\n*{num + 1}.* {leader.name}: *{total_points} б.*'
-        print(leader.name)
+            
         if user.user_id == config.MANAGER_ID:
-            if leader.username:
-                reply_text += f' [{leader.user_id}](https://t.me/{leader.username})'
-            else:
-                reply_text += f' {leader.user_id}'
+            reply_text += f' {leader.user_id}'
     
     if user_place and user_place > 15:
         user_name = leaderboard[user_place - 1].name
@@ -76,7 +73,6 @@ async def leaderboard(title, leaderboard, user_place, user):
     elif not user_place:
         reply_text += f'\n\n...\n*Вы еще не приняли участия в данном рейтинге.*'
 
-    print(reply_text)
     return reply_text
 
 

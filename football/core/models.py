@@ -3,6 +3,7 @@ from django.db.models import Q, Sum, Count
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class TGUser(models.Model):
@@ -158,6 +159,23 @@ class Rating(models.Model):
             .order_by('-total_points', 'non_zero_predicts_count')
     
 
+class BaseSettings(models.Model):
+    leaders_per_page = models.PositiveIntegerField(verbose_name='Количество лидеров на странице', default=50, validators=[MinValueValidator(1), MaxValueValidator(500)])
+    domain = models.CharField(verbose_name='Домен', max_length=200, null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'базовые настройки'
+        verbose_name_plural = 'базовые настройки'
+
+    def __str__(self):
+        return 'Базовые настройки приложения'
+    
+    def save(self, *args, **kwargs):
+        if self.domain:
+            self.domain = self.domain.rstrip('/')
+        super().save(*args, **kwargs)
+        
+    
 @receiver(post_save, sender=Match)
 def update_delivery_valid(sender, instance, **kwargs):
     if instance.score1 is not None and instance.score2 is not None:

@@ -20,8 +20,12 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.conf.urls.static import static
 
+from core import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('leadersboard/', views.LeadersboardView.as_view(), name='leadersboard'),
+    path('api/player-details/<int:rating_id>/<int:player_id>/', views.get_player_details, name='player_details'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

@@ -71,3 +71,7 @@ def get_player_details(request, rating_id, player_id):
     }
     
     return JsonResponse(response_data)
+
+
+class YandexView(TemplateView):
+    template_name = 'yandex_9c9cb277299ce48e.html'

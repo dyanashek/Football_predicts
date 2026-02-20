@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('leadersboard/', views.LeadersboardView.as_view(), name='leadersboard'),
     path('api/player-details/<int:rating_id>/<int:player_id>/', views.get_player_details, name='player_details'),
+    path('yandex_9c9cb277299ce48e.html', views.YandexView.as_view(), name='yandex'),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
